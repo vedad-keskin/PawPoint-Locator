@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PawPoint Locator</title>
+  <!-- Classic CSS -->
+  <link rel="stylesheet" href="css.css">
+  <!-- Bootstrap CSS -->
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  
+<img id="logo" src="PawPoint logo.png">
+
+<div class="container mt-5">
+  <form>
+ 
+
+    <div class="form-group align-items-center justify-content-center w-25 mt-5">
+      <h2 class="text-center d-lg-block bg-primary rounded p-1" id="input">Skeniran ID</h2>
+    </div>
+    <div class="d-flex align-items-center justify-content-center w-25">
+      <input type="text" id="ID" class="form-control text-center" placeholder="ID">
+    </div>
+
+
+    <div class="form-group align-items-center justify-content-center w-25 mt-5">
+      <h2 class="text-center d-lg-block bg-primary rounded p-1" id="input">Poruka</h2>
+      <input type="text" class="form-control text-center" id="Poruka" placeholder="Poruka">
+    </div>
+    
+    <div class="form-group align-items-center justify-content-center w-50 mt-5">
+      <h2 class="text-center d-lg-block bg-primary rounded p-1" id="input">Koordinate</h2>
+      <input type="text" class="form-control text-center" id="Koordinate" placeholder="Koordinate">
+    </div>
+
+    <div class="form-group align-items-center justify-content-center w-50">
+      <h2 class="text-center d-lg-block bg-primary rounded p-1" id="input">Datum</h2>
+      <input type="text" class="form-control text-center" id="Datum" placeholder="Datum">
+    </div>
+    <button type="button" class="btn btn-warning"  onclick="Lokacija()">Google Maps Lokacija</button>
+
+    <!-- <button type="submit" class="btn btn-primary" id="blinker">ON/OFF</button> -->
+  </form> 
+</div>
+
+
+
+
+<!-- Bootstrap skripte -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script src="js.js"></script>
+
+<!-- Firebase konfiguracija -->
+
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js";
+
+
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+  
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyBbEeluhEe-GpI_45hGxtUqyYF2NsnGLPQ",
+    authDomain: "pawpoint-tracker-iot.firebaseapp.com",
+    databaseURL: "https://pawpoint-tracker-iot-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "pawpoint-tracker-iot",
+    storageBucket: "pawpoint-tracker-iot.appspot.com",
+    messagingSenderId: "517410705469",
+    appId: "1:517410705469:web:fe3ff2a74e0a86bc991a54"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  
+
+  import {getDatabase, ref, set, get, child, update, remove, onValue }
+  from "https://www.gstatic.com/firebasejs/10.6.0/firebase-database.js";
+
+   // Varijable 
+   
+   var Datum = document.getElementById("Datum");
+   var Koordinate = document.getElementById("Koordinate");
+   var ID = document.getElementById("ID");
+   var Poruka = document.getElementById("Poruka");
+  
+  // Baza
+  const db = getDatabase(app); // mozda bez app
+  const dbRef = ref(db);
+  var brojac = 0;
+ 
+  
+  function Load(){
+    var LjubimacJeKuci = 1;
+    var ValidanLjubimac = 0;
+
+    get(child(dbRef,"Ljubimac/")).then((snapshot)=>{
+      if(snapshot.exists()){
+        ValidanLjubimac = snapshot.val().ValidanLjubimac;
+        if(ValidanLjubimac == 1){
+          
+          ID.value = snapshot.val().ID;
+          Poruka.value = snapshot.val().Poruka;
+          LjubimacJeKuci = snapshot.val().LjubimacJeKuci;
+        }
+        else{
+          Poruka.value = snapshot.val().Poruka;
+          ID.value = snapshot.val().ID;
+        }
+        brojac = snapshot.val().Blink;
+         
+      }
+      else{
+        console.log("Nema podataka");
+      }
+    }).catch((error)=>{
+      console.error(error);
+    });
+
+    get(child(dbRef,"Koordinate/")).then((snapshot)=>{
+      if(snapshot.exists()){
+        if(LjubimacJeKuci == 1 || ValidanLjubimac == 0){
+          Koordinate.value ="GPS lociranje je isključeno";
+        }
+        else{
+           if(snapshot.val().GEOSirina == ""){
+              Koordinate.value ="Trazi se GPS";
+           }
+           else{
+              Koordinate.value = snapshot.val().GEOSirina + "," + snapshot.val().GEODuzina;
+           }
+        }
+        
+        
+
+      }
+      else{
+        console.log("Nema podataka");
+      }
+    }).catch((error)=>{
+      console.error(error);
+    });
+    get(child(dbRef,"Datum/")).then((snapshot)=>{
+      if(snapshot.exists()){
+        if(LjubimacJeKuci == 1 || ValidanLjubimac == 0){
+          Datum.value ="GPS lociranje je isključeno";
+        }
+        else{
+          if(snapshot.val().Godina == 1){
+            Datum.value ="Trazi se GPS";
+          }else
+          {
+               Datum.value = snapshot.val().Dan + "." + snapshot.val().Mjesec + "." + snapshot.val().Godina;
+          }
+        }
+  
+        
+
+      }
+      else{
+        console.log("Nema podataka");
+      }
+    }).catch((error)=>{
+      console.error(error);
+    });
+  }
+
+
+
+ 
+document.getElementById("blinker").onclick = function() {Blinker()};
+
+function Blinker() {
+  update(ref(db,"Ljubimac/"),{
+      
+     Blink : brojac + 1
+     
+  }).catch((error)=>{
+    console.error(error);
+  });
+}
+
+
+
+
+Load();
+window.setInterval(Load,100);
+</script>
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,27 @@
+body {
+    background-image: url('pawpoint.png');
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
+  }
+
+  h2{
+   color: white;
+   opacity: 70px;
+  }
+
+  #input{
+    opacity: 75%;
+
+  }
+
+  #logo {
+    position: absolute;
+    width: 300px;
+    left: 1000px;
+    bottom: 370px;
+  }
+
+  #ID, #Poruka, #Koordinate, #Datum{
+    font-weight: bolder;
+  }
